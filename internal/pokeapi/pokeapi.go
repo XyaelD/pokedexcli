@@ -24,8 +24,50 @@ func (c *Client) GetLocations(locationUrl string, cache *pokecache.Cache) (Shall
 	if err != nil {
 		return ShallowLocations{}, err
 	}
-	// For testing cache
-	// fmt.Printf("Adding this URL: %v", locationUrl)
 	cache.Add(locationUrl, body)
 	return locationResults, nil
+}
+
+func (c *Client) GetPokemonByLocation(cityName string, cache *pokecache.Cache) (PokemonByLocation, error) {
+	searchURL := "https://pokeapi.co/api/v2/location-area/" + cityName
+	res, err := c.httpClient.Get(searchURL)
+	if err != nil {
+		return PokemonByLocation{}, err
+	}
+	body, err := io.ReadAll(res.Body)
+	defer res.Body.Close()
+
+	if err != nil {
+		return PokemonByLocation{}, err
+	}
+
+	pokemonResults := PokemonByLocation{}
+	err = json.Unmarshal(body, &pokemonResults)
+	if err != nil {
+		return PokemonByLocation{}, err
+	}
+	cache.Add(searchURL, body)
+	return pokemonResults, nil
+}
+
+func (c *Client) CatchPokemon(pokemon string, cache *pokecache.Cache) (Pokemon, error) {
+	searchURL := "https://pokeapi.co/api/v2/pokemon/" + pokemon
+	res, err := c.httpClient.Get(searchURL)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	body, err := io.ReadAll(res.Body)
+	defer res.Body.Close()
+
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	pokemonResults := Pokemon{}
+	err = json.Unmarshal(body, &pokemonResults)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	cache.Add(searchURL, body)
+	return pokemonResults, nil
 }
